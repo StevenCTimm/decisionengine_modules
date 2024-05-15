@@ -5,9 +5,8 @@
 Get allocation info from Nersc SuperFacilityAPI
 """
 import json
-
-import time
 import os
+import time
 
 import jwt
 import pandas as pd
@@ -36,7 +35,7 @@ class NerscSFApi(Source.Source):
         self.logger = self.logger.bind(
             class_module=__name__.split(".")[-1],
         )
-        self.localmap = {"uscms": "m2612", "fife": "m4599", "dunepro": "m3249" }
+        self.localmap = {"uscms": "m2612", "fife": "m4599", "dunepro": "m3249"}
         self.keys_list = ["hours_given", "hours_used", "id", "project_hours_given", "project_hours_used", "repo_name"]
 
     def check_accesstoken(self, nersc_user):
@@ -78,15 +77,15 @@ class NerscSFApi(Source.Source):
                 atoken = afile.read()
                 atoken = atoken.rstrip()
             # HK> If the access token is expired, the flow goes directly to except jwt.ExpiredSign
-    
+
         if atoken is not None:
             rvalue = jwt.decode(atoken, options={"verify_signature": False})
             ctime = int(time.time())
-            diff = ctime - rvalue['exp']
-            print( diff )
+            diff = ctime - rvalue["exp"]
+            print(diff)
         else:
             self.logger.debug("there is no access token file, setting diff high to indicate expired")
-            diff=10000000
+            diff = 10000000
 
         if diff < 0:
             self.logger.debug("Access Token not expired. Returning without generating a new access token")
@@ -128,7 +127,7 @@ class NerscSFApi(Source.Source):
         results = []
         print(self.constraints.get("usernames", []))
         for username in self.constraints.get("usernames", []):
-            self.logger.debug("in send_query %s",username)
+            self.logger.debug("in send_query %s", username)
             print(username)
             returned_list = self.requests_nersc(username)
             self.logger.debug(returned_list)
@@ -137,20 +136,20 @@ class NerscSFApi(Source.Source):
                 # HK> This if condition will choose only m3249 for fife and discard m3990
                 if each_dict["repo_name"] == self.localmap[username]:
                     local_dict = {each_key: each_dict[each_key] for each_key in self.keys_list}
-                    local_dict['real_name'] = username
+                    local_dict["real_name"] = username
                     results.append(local_dict)
         return results
 
-#self.localmap = {"uscms": "m2612", "fife": "m3249"}
-#self.keys_list = [
-#        "hours_given",  "hours_used",  "id",  "project_hours_given",  "project_hours_used", "repo_name" ]
+    # self.localmap = {"uscms": "m2612", "fife": "m3249"}
+    # self.keys_list = [
+    #        "hours_given",  "hours_used",  "id",  "project_hours_given",  "project_hours_used", "repo_name" ]
 
-#+----+---------------+--------------+-------+-----------------------+----------------------+-------------+
-#|    |   hours_given |   hours_used |    id |   project_hours_given |   project_hours_used | repo_name   |
-#|----+---------------+--------------+-------+-----------------------+----------------------+-------------|
-#|  0 |      600000   |       473490 | 54807 |              600000   |             473946   | m2612       |
-#|  1 |       19109.1 |            0 | 63322 |               95545.7 |              24722.7 | m3249       |
-#+----+---------------+--------------+-------+-----------------------+----------------------+-------------+
+    # +----+---------------+--------------+-------+-----------------------+----------------------+-------------+
+    # |    |   hours_given |   hours_used |    id |   project_hours_given |   project_hours_used | repo_name   |
+    # |----+---------------+--------------+-------+-----------------------+----------------------+-------------|
+    # |  0 |      600000   |       473490 | 54807 |              600000   |             473946   | m2612       |
+    # |  1 |       19109.1 |            0 | 63322 |               95545.7 |              24722.7 | m3249       |
+    # +----+---------------+--------------+-------+-----------------------+----------------------+-------------+
 
     def acquire(self):
         self.logger.debug("in NerscSFApi acquire")
